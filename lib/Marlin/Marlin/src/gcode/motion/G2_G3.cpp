@@ -98,11 +98,14 @@ void plan_arc(
   // Angle of rotation between position and target from the circle center.
   float angular_travel, abs_angular_travel;
 
+  // Pre-calculate radians only once.
+  int rads = RADIANS(360);
+
   // Do a full circle if starting and ending positions are "identical"
   if (NEAR(current_position[axis_p], cart[axis_p]) && NEAR(current_position[axis_q], cart[axis_q])) {
     // Preserve direction for circles
-    angular_travel = clockwise ? -RADIANS(360) : RADIANS(360);
-    abs_angular_travel = RADIANS(360);
+    angular_travel = clockwise ? -rads : rads;
+    abs_angular_travel = rads;
   }
   else {
     // Calculate the angle
@@ -113,8 +116,8 @@ void plan_arc(
 
     // Make sure angular travel over 180 degrees goes the other way around.
     switch (((angular_travel < 0) << 1) | clockwise) {
-      case 1: angular_travel -= RADIANS(360); break; // Positive but CW? Reverse direction.
-      case 2: angular_travel += RADIANS(360); break; // Negative but CCW? Reverse direction.
+      case 1: angular_travel -= rads; break; // Positive but CW? Reverse direction.
+      case 2: angular_travel += rads; break; // Negative but CCW? Reverse direction.
     }
 
     abs_angular_travel = ABS(angular_travel);
@@ -133,8 +136,8 @@ void plan_arc(
 
   // If "P" specified circles, call plan_arc recursively then continue with the rest of the arc
   if (TERN0(ARC_P_CIRCLES, circles)) {
-    const float total_angular = abs_angular_travel + circles * RADIANS(360),    // Total rotation with all circles and remainder
-              part_per_circle = RADIANS(360) / total_angular;                   // Each circle's part of the total
+    const float total_angular = abs_angular_travel + circles * rads,    // Total rotation with all circles and remainder
+              part_per_circle = rads / total_angular;                   // Each circle's part of the total
 
     ARC_LIJKUVWE_CODE(
       const float per_circle_L = travel_L * part_per_circle,    // X, Y, or Z movement per circle
